@@ -1,17 +1,17 @@
 export default async function handler(req, res) {
-  const { url } = req.query;
+  const { url, referer, origin } = req.query;
 
-  if (!url) {
-    return res.status(400).send("Missing url parameter");
-  }
+  if (!url) return res.status(400).send("Missing 'url' parameter");
 
   try {
     const decodedUrl = decodeURIComponent(url);
 
     const response = await fetch(decodedUrl, {
       headers: {
-        "referer": "phoenix.server",
-        "origin": "phoenix.server"
+        "referer": referer || "https://megacloud.store",
+        "origin": origin || "https://megacloud.store",
+        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+        "accept": "*/*",
       }
     });
 
