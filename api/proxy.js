@@ -1,26 +1,28 @@
 export default async function handler(req, res) {
-  const { url, referer, origin } = req.query;
+  const targetUrl = req.query.url;
 
-  if (!url) return res.status(400).send("Missing 'url' parameter");
+  if (!targetUrl) {
+    return res.status(400).json({ error: 'Missing url query parameter' });
+  }
 
   try {
-    const decodedUrl = decodeURIComponent(url);
-
-    const response = await fetch(decodedUrl, {
+    const response = await fetch(targetUrl, {
       headers: {
-        "referer": referer || "https://megacloud.store",
-        "origin": origin || "https://megacloud.store",
-        "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
-        "accept": "*/*",
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': '*/*',
+        'Referer': 'https://megacloud.store/',
+        'Origin': 'https://megacloud.store/',
+        'Accept-Language': 'en-US,en;q=0.9',
+        // إن احتجت يمكن إضافة 'Cookie': 'key=value'
       }
     });
 
-    const contentType = response.headers.get("content-type");
-    const buffer = await response.arrayBuffer();
+    const data = await response.arrayBuffer();
 
-    res.setHeader("Content-Type", contentType || "application/octet-stream");
-    res.status(response.status).send(Buffer.from(buffer));
-  } catch (error) {
-    res.status(500).send("Proxy error: " + error.message);
+    res.status(response.status);
+    res.setHeader('Content-Type', response.headers.get('content-type') || 'application/octet-stream');
+    res.send(Buffer.from(data));
+  } catch (err) {
+    res.status(500).json({ error: 'Proxy error', details: err.message });
   }
 }
